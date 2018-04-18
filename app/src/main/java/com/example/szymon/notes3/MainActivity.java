@@ -8,27 +8,40 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.widget.Button;
+import android.widget.Toast;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    ArrayList<Note> noteList=new ArrayList<>();
+    ArrayList<Note> noteList;
     private RecyclerView recyclerView;
-    private NoteAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        String data=Open("data.txt");
+        noteList=parseList(data);
+        if(noteList==null){
+            noteList=new ArrayList<>();
+        }
         recyclerView = findViewById(R.id.RV);
         Button addNotebutton=findViewById(R.id.addNote);
         LinearLayoutManager llm = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(llm);
-        adapter = new NoteAdapter(noteList);
+        NoteAdapter adapter = new NoteAdapter(noteList);
         recyclerView.setAdapter(adapter);
         addNotebutton.setOnClickListener(e->addNote());
+
+
     }
     private void addNote(){
         Intent intent = new Intent(this, adding_note_activity.class);
@@ -43,9 +56,67 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == 0) {
             if(resultCode == RESULT_OK) {
                 noteList= (ArrayList<Note>) data.getSerializableExtra("noteList");
-
+                Save("data.txt");
             }
         }
         recyclerView.swapAdapter(new NoteAdapter(noteList),true);
+    }
+
+    public void Save(String fileName) {
+        try {
+            OutputStreamWriter out =
+                    new OutputStreamWriter(openFileOutput(fileName, 0));
+            for(Note note:noteList){
+                out.write(note.getText());
+                out.write("#");
+            }
+            out.close();
+            Toast.makeText(this, "Note saved!", Toast.LENGTH_SHORT).show();
+        } catch (Throwable t) {
+            Toast.makeText(this, "Exception: " + t.toString(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public String Open(String fileName) {
+        String content = "";
+        if (FileExists(fileName)) {
+            try {
+                InputStream in = openFileInput(fileName);
+                if ( in != null) {
+                    InputStreamReader tmp = new InputStreamReader( in );
+                    BufferedReader reader = new BufferedReader(tmp);
+                    String str;
+                    StringBuilder buf = new StringBuilder();
+                    while ((str = reader.readLine()) != null) {
+                        buf.append(str).append("\n");
+                    } in .close();
+                    content = buf.toString();
+                }
+            } catch (FileNotFoundException ignored) {} catch (Throwable t) {
+                Toast.makeText(this, "Exception: " + t.toString(), Toast.LENGTH_LONG).show();
+            }
+        }
+        return content;
+    }
+    private ArrayList<Note> parseList(String data){
+        ArrayList<Note> list=new ArrayList<>();
+        StringBuilder buf = new StringBuilder();
+        for(int i=0;i<data.length();i++){
+            if(data.charAt(i)=="#".charAt(0)){
+                list.add(new Note(buf.toString()));
+                buf=new StringBuilder();
+            }
+            else {
+                buf.append(data.charAt(i));
+            }
+
+        }
+        return list;
+
+    }
+
+    public boolean FileExists(String fname) {
+        File file = getBaseContext().getFileStreamPath(fname);
+        return file.exists();
     }
 }
