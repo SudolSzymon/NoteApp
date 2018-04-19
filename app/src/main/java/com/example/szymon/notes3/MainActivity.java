@@ -1,5 +1,6 @@
 package com.example.szymon.notes3;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Parcelable;
 import android.support.v7.app.AppCompatActivity;
@@ -7,6 +8,7 @@ import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
@@ -28,6 +30,7 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Context context=this;
         String data=Open("data.txt");
         noteList=parseList(data);
         if(noteList==null){
@@ -40,6 +43,14 @@ public class MainActivity extends AppCompatActivity {
         NoteAdapter adapter = new NoteAdapter(noteList);
         recyclerView.setAdapter(adapter);
         addNotebutton.setOnClickListener(e->addNote());
+        recyclerView.addOnItemTouchListener(
+                new RecyclerViewItemClickHandler(this, (view, position) -> {
+                    Intent intent = new Intent(context, EditNote.class);
+                    intent.putExtra("noteList", noteList);
+                    intent.putExtra("noteText",noteList.get(position).getText());
+                    intent.putExtra("position", position);
+                    startActivityForResult(intent,0);
+                }));
 
 
     }
@@ -58,6 +69,11 @@ public class MainActivity extends AppCompatActivity {
                 noteList= (ArrayList<Note>) data.getSerializableExtra("noteList");
                 Save("data.txt");
             }
+            if (resultCode==RESULT_CANCELED){
+                int position=data.getIntExtra("position",0);
+                noteList.remove(position);
+                Save("data.txt");
+            }
         }
         recyclerView.swapAdapter(new NoteAdapter(noteList),true);
     }
@@ -71,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
                 out.write("#");
             }
             out.close();
-            Toast.makeText(this, "Note saved!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Saved", Toast.LENGTH_SHORT).show();
         } catch (Throwable t) {
             Toast.makeText(this, "Exception: " + t.toString(), Toast.LENGTH_LONG).show();
         }
