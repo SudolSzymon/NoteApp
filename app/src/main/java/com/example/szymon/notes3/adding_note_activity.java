@@ -28,6 +28,7 @@ public class adding_note_activity extends AppCompatActivity {
 
     }
     private void abandon(){
+        setResult(2);
         this.finish();
     }
     private void create(){
@@ -40,4 +41,8 @@ public class adding_note_activity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onBackPressed(){
+        abandon();
+    }
 }

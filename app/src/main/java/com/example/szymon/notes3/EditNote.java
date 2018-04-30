@@ -40,4 +40,8 @@ int position;
         setResult(RESULT_CANCELED,intent);
         this.finish();
     }
+    @Override
+    public void onBackPressed(){
+        save();
+    }
 }
