@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
                 new RecyclerViewItemClickHandler(this, (view, position) -> {
                     Intent intent = new Intent(context, EditNote.class);
                     intent.putExtra("noteList", noteList);
+                    intent.putExtra("noteTitle",noteList.get(position).getTitle());
                     intent.putExtra("noteText",noteList.get(position).getText());
                     intent.putExtra("position", position);
                     startActivityForResult(intent,0);
@@ -82,6 +83,8 @@ public class MainActivity extends AppCompatActivity {
             OutputStreamWriter out =
                     new OutputStreamWriter(openFileOutput(fileName, 0));
             for(Note note:noteList){
+                out.write(note.getTitle());
+                out.write("#");
                 out.write(note.getText());
                 out.write("#");
             }
@@ -114,12 +117,22 @@ public class MainActivity extends AppCompatActivity {
         return content;
     }
     private ArrayList<Note> parseList(String data){
+        boolean flag=true;
+        String title="";
+        String text="";
         ArrayList<Note> list=new ArrayList<>();
         StringBuilder buf = new StringBuilder();
         for(int i=0;i<data.length();i++){
-            if(data.charAt(i)=="#".charAt(0)){
-                list.add(new Note(buf.toString()));
+            if(data.charAt(i)=="#".charAt(0)&&flag){
+                title=buf.toString();
                 buf=new StringBuilder();
+                flag=false;
+            }
+            else if(data.charAt(i)=="#".charAt(0)&&!flag){
+                text=buf.toString();
+                buf=new StringBuilder();
+                flag=true;
+                list.add(new Note(title,text));
             }
             else {
                 buf.append(data.charAt(i));

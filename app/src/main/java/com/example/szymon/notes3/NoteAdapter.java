@@ -20,11 +20,13 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
     public class MyViewHolder extends RecyclerView.ViewHolder {
         public CardView note;
         public TextView text;
+        public TextView title;
 
         public MyViewHolder(View view) {
             super(view);
             note=view.findViewById(R.id.noteView);
             text=view.findViewById(R.id.noteText);
+            title=view.findViewById(R.id.noteTitle);
         }
     }
     public NoteAdapter(List<Note> noteList) {
@@ -44,11 +46,8 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.MyViewHolder> 
     public void onBindViewHolder(@NonNull NoteAdapter.MyViewHolder holder, int position) {
         Note note = noteList.get(position);
         holder.text.setText(note.getText());
-        if(holder.itemView.getBackground()==null){
-            Random rnd = new Random();
-            int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
-            holder.itemView.setBackgroundColor(color);
-        }
+        holder.title.setText(note.getTitle());
+
     }
 
     @Override
